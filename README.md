@@ -33,7 +33,23 @@ yarn add react-router-dom
 ```
 
 4. Delete all the file in src folder except index.js and App.js
-5. Edit src/index.js
+5. Edit src/index.js  
+    Use HashRouter instead of BrowserRouter
+```
+import React from "react";
+import ReactDOM from "react-dom";
+import { HashRouter } from "react-router-dom";
+
+import App from "./App";
+
+ReactDOM.render(
+  <HashRouter>
+    <App />
+  </HashRouter>,
+  document.getElementById("root")
+);
+```
+6. Edit src/App.js
 
 ```
 import React from "react";
