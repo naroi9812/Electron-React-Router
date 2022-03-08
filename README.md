@@ -1,70 +1,154 @@
-# Getting Started with Create React App
+## Electron + React Router step by step
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+1. Create React App
 
-## Available Scripts
+```
+yarn create react-app appname
+cd appname
+```
 
-In the project directory, you can run:
+2. Install dependencies
 
-### `yarn start`
+```
+yarn add electron
+yarn add react-router-dom
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+3. Edit package.json
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```
+// add this 2 line
+"main": "main.js",
+"homepage": ".",
+// edit "scripts"
+"scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "electron": "electron ."
+},
+```
 
-### `yarn test`
+4. Delete all the file in src folder except index.js and App.js
+5. Edit src/index.js
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+import React from "react";
+import { Routes, Route, Link } from "react-router-dom";
 
-### `yarn build`
+function App() {
+  return (
+    <React.Fragment>
+      <ul>
+        <li>
+          <Link to="/a">a</Link>
+        </li>
+        <li>
+          <Link to="/b">b</Link>
+        </li>
+        <li>
+          <Link to="/c">c</Link>
+        </li>
+      </ul>
+      <Routes>
+        <Route path="/" element={<h1>Home</h1>} />
+        <Route path="/a" element={<h1>Page a</h1>} />
+        <Route path="/b" element={<h1>Page b</h1>} />
+        <Route path="/c" element={<h1>Page c</h1>} />
+      </Routes>
+    </React.Fragment>
+  );
+}
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+export default App;
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+7. Create main.js  
+   Edit the template from [Electron quick start](https://www.electronjs.org/docs/latest/tutorial/quick-start#access-nodejs-from-the-renderer-with-a-preload-script)
 
-### `yarn eject`
+```
+// main.js
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+// Modules to control application life and create native browser window
+const { app, BrowserWindow } = require('electron')
+const path = require('path')
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+const createWindow = () => {
+  // Create the browser window.
+  const mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    }
+  })
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+  // and load the index page of the app.
+  mainWindow.loadURL("http://localhost:3000");
+  // mainWindow.loadURL(`file:/${__dirname}/build/index.html`);
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+  // Open the DevTools.
+  // mainWindow.webContents.openDevTools()
+}
 
-## Learn More
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+app.whenReady().then(() => {
+  createWindow()
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+  app.on('activate', () => {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+// Quit when all windows are closed, except on macOS. There, it's common
+// for applications and their menu bar to stay active until the user quits
+// explicitly with Cmd + Q.
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit()
+})
 
-### Code Splitting
+// In this file you can include the rest of your app's specific main process
+// code. You can also put them in separate files and require them here.
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+You can change the URL after react build(yarn build)
 
-### Analyzing the Bundle Size
+```
+mainWindow.loadURL("http://localhost:3000");
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+mainWindow.loadURL(`file:/${__dirname}/build/index.html`);
+```
 
-### Making a Progressive Web App
+8. Create preload.js  
+   Just copy it from the electron quick start link.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```
+// preload.js
 
-### Advanced Configuration
+// All of the Node.js APIs are available in the preload process.
+// It has the same sandbox as a Chrome extension.
+window.addEventListener('DOMContentLoaded', () => {
+  const replaceText = (selector, text) => {
+    const element = document.getElementById(selector)
+    if (element) element.innerText = text
+  }
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+  for (const dependency of ['chrome', 'node', 'electron']) {
+    replaceText(`${dependency}-version`, process.versions[dependency])
+  }
+})
+```
 
-### Deployment
+9. Run the app
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+yarn start
+// wait for the development server
+yarn electron
+```
